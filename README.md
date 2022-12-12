@@ -25,3 +25,12 @@ Main:
 
 ## Class echoclient
 Ressemble comme clientHandler avec des differences:
+- affichage dans le terminal client les infos qui lui sont necessaires comme:
+	- les messages des autres user avec leur username grâce au méthode sendMessage()
+	- messageListener pour lire les message du groupchat
+	- création de méthode closeThis pour fermer les buffer + socket
+- Main:
+	- demande à l'utilisateur de créer son username
+	- création du socket avec le host et le port
+	- attribution de socket et username au client, lecture des messages de groupe
+	
