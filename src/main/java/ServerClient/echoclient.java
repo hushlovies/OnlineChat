@@ -1,43 +1,41 @@
 package ServerClient;
 import java.io.*;
-import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class echoclient {
-    private Socket sock; //connection client/serv
-    private BufferedReader bufferReader; //lire des données
-    private BufferedWriter bufferWriter; //envoyer des msg
-    private String nomClient;
+    private Socket socket; //connection client/serv
+    private BufferedReader bufferedReader; //lire des données
+    private BufferedWriter bufferedWriter; //envoyer des msg
+    private String pseudo;
 
-    public echoclient(Socket sock,String nomClient) {
+    public echoclient(Socket socket,String pseudo) {
         try{
-            this.sock=sock;
-            this.bufferWriter=new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
-            this.bufferReader=new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            this.nomClient= nomClient;
+            this.socket=socket;
+            this.bufferedWriter=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.pseudo= pseudo;
 
         }catch(IOException e){
-            closeThis(sock,bufferReader,bufferWriter);
+            closeThis(socket,bufferedReader,bufferedWriter);
         }
     }
     public void msgSent(){
         try{
 
-            bufferWriter.write(nomClient);
-            bufferWriter.newLine();
-            bufferWriter.flush();
+            bufferedWriter.write(pseudo);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
 
             Scanner scanner=new Scanner(System.in);
-            while(sock.isConnected()){
-                String messageAenvoyer=scanner.nextLine();
-                bufferWriter.write(nomClient +": "+ messageAenvoyer);
-                bufferWriter.newLine();
-                bufferWriter.flush();
+            while(socket.isConnected()){
+                String msgAenvoyer=scanner.nextLine();
+                bufferedWriter.write(pseudo +": "+ msgAenvoyer);
+                bufferedWriter.newLine();
+                bufferedWriter.flush();
             }
         }catch(IOException e){
-            closeThis(sock,bufferReader,bufferWriter);
+            closeThis(socket,bufferedReader,bufferedWriter);
         }
     }
 
@@ -46,12 +44,12 @@ public class echoclient {
             @Override
             public void run() {
                 String GroupMsg;
-                while(sock.isConnected()){
+                while(socket.isConnected()){
                      try{
-                         GroupMsg=bufferReader.readLine();
+                         GroupMsg=bufferedReader.readLine();
                          System.out.println(GroupMsg);
                     }catch(IOException e){
-                        closeThis(sock,bufferReader,bufferWriter);
+                        closeThis(socket,bufferedReader,bufferedWriter);
                     }
                 }
             }
@@ -68,17 +66,16 @@ public class echoclient {
                 sock.close();
             }
         }catch (IOException e){
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
     public static void main(String args[]) throws IOException {
-        int port = 8080;
         Scanner scanner=new Scanner(System.in);
         System.out.println("Entrer ton nom d'utilisateur : ");
-        String nomClient=scanner.nextLine();
-        Socket sock=new Socket("localhost",port);
-        echoclient client=new echoclient(sock,nomClient);
+        String pseudo=scanner.nextLine();
+        Socket socket=new Socket("localhost",1212);
+        echoclient client=new echoclient(socket,pseudo);
         client.messageListener();
         client.msgSent();
 

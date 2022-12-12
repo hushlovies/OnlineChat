@@ -7,22 +7,22 @@ import java.util.ArrayList;
 public class ClientHandler implements Runnable{
 
     //s'occupe de communication entre clients
-    public static ArrayList<ClientHandler> clients = new ArrayList<>(); //allow the communication between clients by looping the array
-    private Socket sock; //connection client/serv
-    private BufferedReader bufferReader; //lire des données
-    private BufferedWriter bufferWriter; //envoyer des msg
-    private String nomClient;
+    public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>(); //allow the communication between clients by looping the array
+    private Socket socket; //connection client/serv
+    private BufferedReader bufferedReader; //lire des données
+    private BufferedWriter bufferedWriter; //envoyer des msg
+    private String clientUsername;
 
-    public ClientHandler(Socket sock) {
+    public ClientHandler(Socket socket) {
         try{
-            this.sock=sock;
-            this.bufferWriter=new BufferedWriter(new OutputStreamWriter(sock.getOutputStream()));
-            this.bufferReader=new BufferedReader(new InputStreamReader(sock.getInputStream()));
-            this.nomClient= bufferReader.readLine();
-            afficheMsg("SERVEUR: "+nomClient+ "est dans le Chat. Dis Bonjour!");
-            clients.add(this);
+            this.socket=socket;
+            this.bufferedWriter=new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.bufferedReader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.clientUsername= bufferedReader.readLine();
+            clientHandlers.add(this);
+            afficheMsg("SERVEUR: "+clientUsername+ " est dans le Chat. Dis Bonjour!");
         }catch(IOException e){
-            closeThis(sock,bufferReader,bufferWriter);
+            closeThis(socket,bufferedReader,bufferedWriter);
         }
     }
 
@@ -30,49 +30,54 @@ public class ClientHandler implements Runnable{
     //handling messages
     @Override
     public void run() {
-        String msgClient; //msg venant du client
+        String msgFromClient; //msg venant du client
 
-       do{
+        while(socket.isConnected()){
             try {
-                msgClient=bufferReader.readLine();
-                afficheMsg(msgClient);
+                msgFromClient=bufferedReader.readLine();
+                afficheMsg(msgFromClient);
             }
             catch (IOException e){
-                closeThis(sock,bufferReader,bufferWriter);
+                closeThis(socket,bufferedReader,bufferedWriter);
                 break;
             }
-        }while(sock.isConnected());
+        }
     }
-    public void afficheMsg(String msgAenvoyer){
-        for(ClientHandler clientHandler: clients){
+    //foeach client, permet d''éviter l'affichage de ton propre msg sur to terminal
+    public void afficheMsg(String msgToSend){
+        for(ClientHandler clientHandler: clientHandlers){
             try{
-                if(clientHandler.nomClient.equals(nomClient)){
-                    clientHandler.bufferWriter.write(msgAenvoyer);
-                    clientHandler.bufferWriter.newLine();
-                    clientHandler.bufferWriter.flush();
+                if(!clientHandler.clientUsername.equals(clientUsername))
+                {
+                    clientHandler.bufferedWriter.write(msgToSend);
+                    clientHandler.bufferedWriter.newLine();
+                    clientHandler.bufferedWriter.flush(); //manual flush for the buffer to stop
                 }
             }catch(IOException e){
-                closeThis(sock,bufferReader,bufferWriter);
+                closeThis(socket,bufferedReader,bufferedWriter);
             }
         }
 
     }
     //enlever le client dans l'arraylist lorsque le user quitte le chat. On ne pet plus lui envoyer de msg, ni recevoir des msgs
     public void rmClientHandler(){
-        afficheMsg("SERVEUR: "+nomClient+ "a quitté le chat :'(");
+        clientHandlers.remove(this);
+        afficheMsg("SERVEUR: "+clientUsername+ "a quitté le chat ");
     }
-    public void closeThis(Socket sock ,BufferedReader bufferReader,BufferedWriter bufferWriter){
+    public void closeThis(Socket socket ,BufferedReader bufferedReader,BufferedWriter bufferedWriter){
         rmClientHandler();
         try{
-            if(bufferReader!=null){
-                bufferReader.close();
-            }if(bufferWriter!=null){
-                bufferWriter.close();
-            }if(sock!=null){
-                sock.close();
+            if(bufferedReader!=null){
+                bufferedReader.close();
+            }
+            if(bufferedWriter!=null){
+                bufferedWriter.close();
+            }
+            if(socket!=null){
+                socket.close();
             }
         }catch (IOException e){
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 

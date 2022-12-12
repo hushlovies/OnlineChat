@@ -13,7 +13,7 @@ public class echoserver
     public echoserver(ServerSocket serverSocket) {
         this.serverSocket = serverSocket;
     }
-    public void startingServer()
+    public void startServer()
     {
         //for input and output error handling
         try
@@ -21,11 +21,10 @@ public class echoserver
             //while the socket is open
             while(!serverSocket.isClosed())
             {
-                Socket serv=serverSocket.accept(); //program is blocked till a client connects. when a client connects, asocket is returned
+                Socket socket=serverSocket.accept(); //program is blocked till a client connects. when a client connects, asocket is returned
                 System.out.println("Une nouvelle personne est connectée");
-                ClientHandler client=new ClientHandler(serv);
-
-                Thread thread= new Thread(client);
+                ClientHandler clientHandler=new ClientHandler(socket);
+                Thread thread= new Thread(clientHandler);
                 thread.start();
             }
 
@@ -34,22 +33,21 @@ public class echoserver
         }
     }
     //if error, shut down server socket
-    public void classServerSocket(){
+    public void closeServerSocket(){
         try{
             if(serverSocket!=null){
                 serverSocket.close();
             }
         }catch(IOException e){
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
     }
     public static void main(String args[]) throws IOException {
 
-        int port = 8080;
-        ServerSocket serverSocket = new ServerSocket(port);
+        ServerSocket serverSocket = new ServerSocket(1212);
         echoserver server = new echoserver(serverSocket);
-        server.startingServer();
+        server.startServer();
     }
 
 }
