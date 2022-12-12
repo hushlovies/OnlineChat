@@ -1,8 +1,5 @@
 package ServerClient;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -21,10 +18,10 @@ public class echoserver
             //while the socket is open
             while(!serverSocket.isClosed())
             {
-                Socket socket=serverSocket.accept(); //program is blocked till a client connects. when a client connects, asocket is returned
+                Socket sock=serverSocket.accept(); //program is blocked till a client connects. when a client connects, asocket is returned
                 System.out.println("Une nouvelle personne est connectée");
-                ClientHandler clientHandler=new ClientHandler(socket);
-                Thread thread= new Thread(clientHandler);
+                ClientHandler client=new ClientHandler(sock);
+                Thread thread= new Thread(client);
                 thread.start();
             }
 
@@ -44,8 +41,8 @@ public class echoserver
 
     }
     public static void main(String args[]) throws IOException {
-
-        ServerSocket serverSocket = new ServerSocket(1212);
+        int port=1212;
+        ServerSocket serverSocket = new ServerSocket(port);
         echoserver server = new echoserver(serverSocket);
         server.startServer();
     }
